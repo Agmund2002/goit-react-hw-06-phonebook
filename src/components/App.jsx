@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
 import { ContactForm } from './ContactForm/ContactForm';
 import { Filter } from './Filter/Filter';
 import { ContactList } from './ContactList/ContactList';
-import { nanoid } from 'nanoid';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { useSelector } from 'react-redux';
+import { getContacts } from 'redux/contactsSlice';
 import {
   MainTitle,
   Message,
@@ -11,54 +10,16 @@ import {
 } from './individualElements/Title.styled';
 
 export const App = () => {
-  const [contacts, setContacts] = useState([]);
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    const contactsData = localStorage.getItem('contacts');
-    if (contactsData !== null) {
-      setContacts(JSON.parse(contactsData));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (contacts.length > 0) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-    }
-  }, [contacts]);
-
-  const addContact = contact => {
-    if (contacts.find(({ name }) => name === contact.name)) {
-      return Notify.failure(`${contact.name} is already in contacts`);
-    }
-
-    setContacts([...contacts, { id: nanoid(), ...contact }]);
-  };
-
-  const deleteContact = key => {
-    setContacts(contacts.filter(({ id }) => id !== key));
-  };
-
-  const changeFilter = newFilter => {
-    setFilter(newFilter);
-  };
-
-  const filterArray = contacts.filter(({ name }) => {
-    if (filter === '') {
-      return true;
-    }
-
-    return name.toLowerCase().includes(filter.toLowerCase());
-  });
+  const contacts = useSelector(getContacts);
 
   return (
     <div>
       <MainTitle>Phonebook</MainTitle>
-      <ContactForm onAdd={addContact} />
+      <ContactForm />
       <SecondaryTitle>Contacts</SecondaryTitle>
-      <Filter filter={filter} onChange={changeFilter} />
+      <Filter />
       {contacts.length > 0 ? (
-        <ContactList arr={filterArray} onDelete={deleteContact} />
+        <ContactList />
       ) : (
         <Message>Phonebook is empty</Message>
       )}

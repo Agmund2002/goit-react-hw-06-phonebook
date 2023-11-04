@@ -1,6 +1,15 @@
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { Button, Label, ModernErrorMessage, ModernField, ModernForm } from './ContactForm.styled';
+import {
+  Button,
+  Label,
+  ModernErrorMessage,
+  ModernField,
+  ModernForm,
+} from './ContactForm.styled';
+import { useDispatch, useSelector } from 'react-redux';
+import { add, getContacts } from 'redux/contactsSlice';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const schema = Yup.object().shape({
   name: Yup.string()
@@ -13,7 +22,18 @@ const schema = Yup.object().shape({
     .required('Required'),
 });
 
-export const ContactForm = ({onAdd}) => {
+export const ContactForm = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
+
+  const handlerAdd = inputValue => { 
+    if (contacts.find(({ name }) => name === inputValue.name)) {
+      return Notify.failure(`${inputValue.name} is already in contacts`);
+    }
+
+    dispatch(add(inputValue));
+  };
+  
   return (
     <Formik
       initialValues={{
@@ -22,7 +42,7 @@ export const ContactForm = ({onAdd}) => {
       }}
       validationSchema={schema}
       onSubmit={(values, actions) => {
-        onAdd(values);
+        handlerAdd(values);
         actions.resetForm();
       }}
     >
@@ -35,11 +55,15 @@ export const ContactForm = ({onAdd}) => {
 
         <Label>
           Phone number
-          <ModernField type="tel" name="number" placeholder="+38(099)-000-0000" />
+          <ModernField
+            type="tel"
+            name="number"
+            placeholder="+38(099)-000-0000"
+          />
           <ModernErrorMessage component="span" name="number" />
         </Label>
 
-        <Button type='submit'>Add contact</Button>
+        <Button type="submit">Add contact</Button>
       </ModernForm>
     </Formik>
   );
